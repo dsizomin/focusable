@@ -25,7 +25,26 @@
  * Date: 2014-11-18
  */
 
-(function(exports) {
+(function(root, factory) {
+
+  'use strict';
+
+  if (typeof define === 'function' && define.amd) {
+
+    define(['exports', 'jquery'], factory);
+
+  } else if (typeof exports !== 'undefined') {
+
+    factory(exports, require('jquery'));
+
+  } else {
+
+    factory((root.Focusable = {}), root.jQuery || root.$);
+
+  }
+
+})(this, function(exports, $) {
+
   var $columnWrapper = null;
   var $element = null;
   var isVisible = false;
@@ -52,12 +71,12 @@
    * @return {jQuery object} this
    */
   function createPlugin() {
-    if (!window.jQuery || !window.$ || !window.$.fn) {
+    if (!$.fn) {
       return;
     }
 
     $.fn.focusable = function(options) {
-      Focusable.setFocus(this, options);
+      exports.setFocus(this, options);
       return this;
     };
   }
@@ -101,7 +120,7 @@
     }
 
     $columnWrapper.find(columnSelector).fadeIn(options.fadeDuration);
-  };
+  }
 
   function clearColumns() {
     $columnWrapper.find(columnSelector).remove();
@@ -134,25 +153,25 @@
   }
 
   function createColumn(index) {
-    var offset = $element.offset();
-    var top = 0, left = 0, width = px($element.outerWidth()), height = "100%";
+    var rectangle = $element[0].getBoundingClientRect();
+    var top = 0, left = 0, width = px(rectangle.width), height = "100%";
     var styles = '';
 
     switch (index) {
       case 0:
-        width = px(offset.left);
+        width = px(rectangle.x);
         break;
       case 1:
-        left = px(offset.left);
-        height = px(offset.top);
+        left = px(rectangle.x);
+        height = px(rectangle.y);
         break;
       case 2:
-        left = px(offset.left);
-        top = px($element.outerHeight() + offset.top);
+        left = px(rectangle.x);
+        top = px(rectangle.height + rectangle.y);
         break;
       case 3:
         width = "100%";
-        left = px(($element.outerWidth() + offset.left));
+        left = px(rectangle.width + rectangle.x);
         break;
     }
 
@@ -165,17 +184,17 @@
    * @return {jQuery object}
    */
   function makeRectWithHole (width, height, radius) {
-     return $(
+    return $(
       '<svg width=' + width + ' height=' + height + '>' +
       '<defs>' +
-      '    <mask id="hole">' +
-      '        <rect width="100%" height="100%" fill="white"/>' +
-      '        <circle r="' + radius +  '" cx="' + (width/2) + '" cy="' +  (height/2) +'" />' +
-      '    </mask>' +
+      '  <mask id="hole">' +
+      '    <rect width="100%" height="100%" fill="white"/>' +
+      '    <circle r="' + radius +  '" cx="' + (width/2) + '" cy="' +  (height/2) +'" />' +
+      '  </mask>' +
       '</defs>' +
       '<rect id="donut" style="fill:rgba(0,0,0,0.8);" width="' + width +'" height="' + height + '" mask="url(#hole)" />' +
       '</svg>');
-  };
+  }
 
   /**
    * Add a hole
@@ -235,12 +254,11 @@
     createColumns(true);
   }
 
-  exports.Focusable = {
-    setFocus: setFocus,
-    hide: hide,
-    refresh: refresh,
-    getActiveElement: getActiveElement,
-    getOptions: getOptions,
-    isVisible: getVisibility
-  };
-})(window);
+  exports.setFocus = setFocus;
+  exports.hide = hide;
+  exports.refresh = refresh;
+  exports.getActiveElement = getActiveElement;
+  exports.getOptions = getOptions;
+  exports.isVisible = getVisibility;
+
+});
